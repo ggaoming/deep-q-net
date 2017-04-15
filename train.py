@@ -116,24 +116,19 @@ def trainNetwork(nn_input, nn_output_, sess):
             action_index = np.argmax(readout_t)
             action[action_index] = 1
 
-        # scale down epsilon
         if epsilon > FINAL_EPSILON and time_step > OBSERVE:
             epsilon -= (INITIAL_EPSILON - FINAL_EPSILON) / EXPLORE
 
-        # run the selected action and observe next state and reward
         img, score, crash = game_state.process(action)
         img = cv2.cvtColor(cv2.resize(img, (80, 80)), cv2.COLOR_BGR2GRAY)
         img = np.reshape(img, (80, 80, 1))
         game_img_list1 = np.append(img, game_img_list[:, :, :3], axis=2)
 
-        # store the transition in D
         D.append((game_img_list, action, score, game_img_list1, crash))
         if len(D) > REPLAY_MEMORY:
             D.popleft()
         if time_step > OBSERVE and len(D) == REPLAY_MEMORY and time_step % REPLAY_MEMORY == 0:
-            # sample a minibatch to train on
-            minibatch = D # random.sample(D, REPLAY_MEMORY)
-            # get the batch variables
+            minibatch = D
             batch_game_img_list = [d[0] for d in minibatch]  # image_sequence
             batch_action = [d[1] for d in minibatch]  # game actions
             batch_score = [d[2] for d in minibatch]  # game score
